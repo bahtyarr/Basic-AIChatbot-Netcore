@@ -36,7 +36,7 @@ namespace BasicAI.Actions
 
             while (true)
             {
-                Console.Write("Says something (or type 'bye' to quit): ");
+                Console.Write("Say something (or type 'bye' to quit): ");
                 string user = Console.ReadLine().ToLower();
 
                 if (user == "bye")
@@ -47,56 +47,68 @@ namespace BasicAI.Actions
 
                 bool keywordFound = false;
 
-                foreach (var keyword in keywords)
+                // Check for nested keywords first
+                foreach (var mainKeyword in nestedKeywords)
                 {
-                    if (user.Contains(keyword.Key))
+                    if (user.Contains(mainKeyword.Key))
                     {
-                        // Check for nested keywords first
-                        if (nestedKeywords.ContainsKey(keyword.Key))
+                        foreach (var nestedKeyword in mainKeyword.Value)
                         {
-                            foreach (var nestedKeyword in nestedKeywords[keyword.Key])
+                            if (user.Contains(nestedKeyword.Key))
                             {
-                                if (user.Contains(nestedKeyword.Key))
-                                {
-                                    Console.WriteLine("Bot: " + nestedKeyword.Value);
-                                    keywordFound = true;
-                                    break;
-                                }
+                                Console.WriteLine("Bot: " + nestedKeyword.Value);
+                                keywordFound = true;
+                                break;
                             }
                         }
-
-                        if (!keywordFound)
-                        {
-                            Console.WriteLine("Bot: " + keyword.Value);
-                            keywordFound = true;
-                        }
-
-                        break;
+                        if (keywordFound) break;
                     }
                 }
 
+                // Check for main keywords if no nested keyword was found
                 if (!keywordFound)
                 {
-                    Console.Write("I'm not sure how to respond. What keyword should I respond to? ");
-                    string newKeyword = Console.ReadLine().ToLower();
-                    Console.Write("How should I respond to " + newKeyword + "? ");
-                    string newResponse = Console.ReadLine();
-
-                    if (newKeyword.Contains(" "))
+                    foreach (var keyword in keywords)
                     {
-                        var parts = newKeyword.Split(' ');
-                        var primaryKey = parts[0];
-                        var subKey = parts[1];
-
-                        if (!nestedKeywords.ContainsKey(primaryKey))
+                        if (user.Contains(keyword.Key))
                         {
-                            nestedKeywords[primaryKey] = new Dictionary<string, string>();
+                            Console.WriteLine("Bot: " + keyword.Value);
+                            keywordFound = true;
+                            break;
                         }
-                        nestedKeywords[primaryKey][subKey] = newResponse;
+                    }
+                }
+
+                // Allow user to add new keywords and responses
+                if (!keywordFound)
+                {
+                    Console.Write("I'm not sure how to respond. What main keyword should I respond to? ");
+                    string mainKeyword = Console.ReadLine().ToLower();
+
+                    // Check if the user wants to add a nested keyword
+                    Console.Write("Would you like to add a nested keyword for " + mainKeyword + " (yes or no)? ");
+                    string addNested = Console.ReadLine().ToLower();
+
+                    if (addNested == "yes")
+                    {
+                        Console.Write("What nested keyword should I respond to under " + mainKeyword + "? ");
+                        string nestedKeyword = Console.ReadLine().ToLower();
+
+                        Console.Write("How should I respond to " + nestedKeyword + " under " + mainKeyword + "? ");
+                        string newResponse = Console.ReadLine();
+
+                        if (!nestedKeywords.ContainsKey(mainKeyword))
+                        {
+                            nestedKeywords[mainKeyword] = new Dictionary<string, string>();
+                        }
+                        nestedKeywords[mainKeyword][nestedKeyword] = newResponse;
                     }
                     else
                     {
-                        keywords[newKeyword] = newResponse;
+                        Console.Write("How should I respond to " + mainKeyword + "? ");
+                        string newResponse = Console.ReadLine();
+
+                        keywords[mainKeyword] = newResponse;
                     }
                 }
             }

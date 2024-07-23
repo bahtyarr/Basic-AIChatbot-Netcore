@@ -118,21 +118,15 @@ namespace BasicAI.Actions
                                         keywordFound = true;
                                         break;
                                     }
-                                    else
-                                    {
-                                        Console.WriteLine("Bot: " + keyword.Value);
-                                        keywordFound = true;
-                                        break;
-                                    }
                                 }
-                                if (keywordFound) break;
                             }
-                            else
+
+                            if (!keywordFound)
                             {
                                 Console.WriteLine("Bot: " + keyword.Value);
                                 keywordFound = true;
-                                break;
                             }
+                            break;
                         }
                     }
                 }
@@ -140,39 +134,57 @@ namespace BasicAI.Actions
                 // Allow user to add new keywords and responses
                 if (!keywordFound)
                 {
-                    Console.Write("I'm not sure how to respond. What keyword should I respond to? ");
-                    string newKeyword = Console.ReadLine().ToLower();
+                    Console.Write("I'm not sure how to respond. What main keyword should I respond to? ");
+                    string mainKeyword = Console.ReadLine().ToLower();
 
-                    if (newKeyword.Contains(" "))
+                    Console.Write("Would you like to add a nested keyword for " + mainKeyword + " (yes or no)? ");
+                    string addNested = Console.ReadLine().ToLower();
+
+                    if (addNested == "yes")
                     {
-                        var parts = newKeyword.Split(' ', 2);
-                        var parentKeyword = parts[0];
-                        var subKeyword = parts[1];
+                        Console.Write("What nested keyword should I respond to under " + mainKeyword + "? ");
+                        string nestedKeyword = Console.ReadLine().ToLower();
 
-                        Console.Write("How should I respond to " + subKeyword + " under " + parentKeyword + "? ");
-                        string newResponse = Console.ReadLine();
+                        Console.Write("Would you like to add an additional keyword for " + nestedKeyword + " under " + mainKeyword + "? (yes or no)? ");
+                        string addMultiLevel = Console.ReadLine().ToLower();
 
-                        if (!multiLevelNestedKeywords.ContainsKey(parentKeyword))
+                        if (addMultiLevel == "yes")
                         {
-                            multiLevelNestedKeywords[parentKeyword] = new Dictionary<string, Dictionary<string, string>>();
-                        }
+                            Console.Write("What additional keyword should I respond to under " + nestedKeyword + " under " + mainKeyword + "? ");
+                            string multiLevelKeyword = Console.ReadLine().ToLower();
 
-                        if (!multiLevelNestedKeywords[parentKeyword].ContainsKey(subKeyword))
+                            Console.Write("How should I respond to " + multiLevelKeyword + " under " + nestedKeyword + " under " + mainKeyword + "? ");
+                            string multiLevelResponse = Console.ReadLine();
+
+                            if (!multiLevelNestedKeywords.ContainsKey(mainKeyword))
+                            {
+                                multiLevelNestedKeywords[mainKeyword] = new Dictionary<string, Dictionary<string, string>>();
+                            }
+
+                            if (!multiLevelNestedKeywords[mainKeyword].ContainsKey(nestedKeyword))
+                            {
+                                multiLevelNestedKeywords[mainKeyword][nestedKeyword] = new Dictionary<string, string>();
+                            }
+
+                            multiLevelNestedKeywords[mainKeyword][nestedKeyword][multiLevelKeyword] = multiLevelResponse;
+                        }
+                        else
                         {
-                            multiLevelNestedKeywords[parentKeyword][subKeyword] = new Dictionary<string, string>();
+                            Console.Write("How should I respond to " + nestedKeyword + " under " + mainKeyword + "? ");
+                            string nestedResponse = Console.ReadLine();
+
+                            if (!nestedKeywords.ContainsKey(mainKeyword))
+                            {
+                                nestedKeywords[mainKeyword] = new Dictionary<string, string>();
+                            }
+                            nestedKeywords[mainKeyword][nestedKeyword] = nestedResponse;
                         }
-
-                        // Assuming sub-keywords are further categorized
-                        Console.Write("Specify the level of sub-keyword (e.g., 'genres', 'benefits'): ");
-                        string levelKeyword = Console.ReadLine().ToLower();
-
-                        multiLevelNestedKeywords[parentKeyword][subKeyword][levelKeyword] = newResponse;
                     }
                     else
                     {
-                        Console.Write("How should I respond to " + newKeyword + "? ");
-                        string newResponse = Console.ReadLine();
-                        keywords[newKeyword] = newResponse;
+                        Console.Write("How should I respond to " + mainKeyword + "? ");
+                        string mainResponse = Console.ReadLine();
+                        keywords[mainKeyword] = mainResponse;
                     }
                 }
             }
